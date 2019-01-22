@@ -19,26 +19,14 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ###############################################################################
+from odoo import models, fields
 
-from openerp.osv import fields, orm
 
-
-class crm_claim(orm.Model):
+class crm_claim(models.Model):
     _inherit = 'crm.claim'
 
-    _columns = {
-        'name': fields.related(
-            'categ_id',
-            'name',
-            relation='crm.case.categ',
-            type='char',
-            string='Claim Subject',
-            size=128,
-            store=True),
-        'categ_id': fields.many2one(
-            'crm.case.categ',
-            'Category',
-            domain="[('section_id', '=', section_id), \
+    name= fields.Char(related=            'categ_id.name',            relation='crm.case.categ',            type='char',            string='Claim Subject',            size=128,            store=True)
+    categ_id= fields.Many2one(            'crm.case.categ',            'Category',            domain="[('section_id', '=', section_id), \
                     ('object_id.model', '=', 'crm.claim')]",
-            required=True),
-    }
+            required=True)
+

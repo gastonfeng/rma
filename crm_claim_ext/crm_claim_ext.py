@@ -26,7 +26,7 @@ from osv import fields, osv
 #from dateutil.relativedelta import relativedelta
 #import time
 
-class crm_claim_ext(osv.osv):
+class crm_claim_ext(models.Model):
     """
     Crm claim field extension
     """
