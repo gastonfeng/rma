@@ -46,33 +46,33 @@ class claim_make_picking_from_picking(orm.TransientModel):
             'Picking lines'),
     }
 
-    def _get_default_warehouse(self, cr, uid, context=None):
-        warehouse_id=self.pool.get('crm.claim')._get_default_warehouse(cr, uid, context=context)
+    def _get_default_warehouse(self,  context=None):
+        warehouse_id=self.pool.get('crm.claim')._get_default_warehouse( context=context)
         return warehouse_id
 
-    def _get_picking_lines(self, cr, uid, context):
-        return self.pool.get('stock.picking').read(cr, uid,
+    def _get_picking_lines(self,  context):
+        return self.pool.get('stock.picking').read(
             context['active_id'], ['move_lines'], context=context)['move_lines']
 
     # Get default source location
-    def _get_source_loc(self, cr, uid, context):
+    def _get_source_loc(self,  context):
         if context is None: 
             context = {}
         warehouse_obj = self.pool.get('stock.warehouse')
-        warehouse_id = self._get_default_warehouse(cr, uid, context=context)
-        return warehouse_obj.read(cr, uid,
+        warehouse_id = self._get_default_warehouse( context=context)
+        return warehouse_obj.read(
             warehouse_id, ['lot_rma_id'], context=context)['lot_rma_id'][0]
 
     # Get default destination location
-    def _get_dest_loc(self, cr, uid, context):
+    def _get_dest_loc(self,  context):
         if context is None: 
             context = {}
-        warehouse_id = self._get_default_warehouse(cr, uid, context=context)
+        warehouse_id = self._get_default_warehouse( context=context)
         warehouse_obj = self.pool.get('stock.warehouse')
         if context.get('picking_type'):
             context_loc = context.get('picking_type')[8:]
             loc_field = 'lot_%s_id' %context.get('picking_type')[8:]
-            loc_id = warehouse_obj.read(cr, uid,
+            loc_id = warehouse_obj.read(
                 warehouse_id, [loc_field], context=context)[loc_field][0]
         return loc_id
 
@@ -86,7 +86,7 @@ class claim_make_picking_from_picking(orm.TransientModel):
         return {'type': 'ir.actions.act_window_close',}
 
     # If "Create" button pressed
-    def action_create_picking_from_picking(self, cr, uid, ids, context=None):
+    def action_create_picking_from_picking(self,  ids, context=None):
         picking_obj = self.pool.get('stock.picking')
         move_obj = self.pool.get('stock.move')
         view_obj = self.pool.get('ir.ui.view')
@@ -97,18 +97,18 @@ class claim_make_picking_from_picking(orm.TransientModel):
             context_type = context.get('picking_type')[8:]
             note = 'Internal picking from RMA to %s' %context_type
             name = 'Internal picking to %s' %context_type
-        view_id = view_obj.search(cr, uid, [
+        view_id = view_obj.search( [
                                             ('xml_id', '=', 'view_picking_form'),
                                             ('model', '=', 'stock.picking'),
                                             ('type', '=', 'form'),
                                             ('name', '=', 'stock.picking.form')
                                             ], context=context)[0]
-        wizard = self.browse(cr, uid, ids[0], context=context)
-        prev_picking = picking_obj.browse(cr, uid,
+        wizard = self.browse( ids[0], context=context)
+        prev_picking = picking_obj.browse(
             context['active_id'], context=context)
         partner_id = prev_picking.partner_id.id
         # create picking
-        picking_id = picking_obj.create(cr, uid, {
+        picking_id = picking_obj.create( {
                     'origin': prev_picking.origin,
                     'type': p_type,
                     'move_type': 'one', # direct
@@ -124,7 +124,7 @@ class claim_make_picking_from_picking(orm.TransientModel):
                 })
         # Create picking lines
         for wizard_picking_line in wizard.picking_line_ids:
-            move_id = move_obj.create(cr, uid, {
+            move_id = move_obj.create( {
                     'name' : wizard_picking_line.product_id.name_template, # Motif : crm id ? stock_picking_id ?
                     'priority': '0',
                     #'create_date':
@@ -145,7 +145,7 @@ class claim_make_picking_from_picking(orm.TransientModel):
                     'location_dest_id': wizard.picking_line_dest_location.id,
                     'note': note,
                 })
-            wizard_move = move_obj.write(cr, uid,
+            wizard_move = move_obj.write(
                 wizard_picking_line.id,
                 {'move_dest_id': move_id},
                 context=context)
@@ -153,7 +153,7 @@ class claim_make_picking_from_picking(orm.TransientModel):
         if picking_id:
             wf_service.trg_validate(uid, 
                 'stock.picking', picking_id,'button_confirm', cr)
-            picking_obj.action_assign(cr, uid, [picking_id])
+            picking_obj.action_assign( [picking_id])
         domain = "[('type','=','%s'),('partner_id','=',%s)]"%(p_type, partner_id)
         return {
             'name': '%s' % name,

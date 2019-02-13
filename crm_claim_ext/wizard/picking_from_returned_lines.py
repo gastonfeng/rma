@@ -34,13 +34,13 @@ class picking_in_from_returned_lines(osv.osv_memory):
     }
 
     # Get selected lines to add to picking in
-    def _get_selected_lines(self, cr, uid,context):
-        returned_line_ids = self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['claim_line_ids'])['claim_line_ids'] 
-        returned_lines = self.pool.get('claim.line').browse(cr, uid,returned_line_ids)
+    def _get_selected_lines(self, context):
+        returned_line_ids = self.pool.get('crm.claim').read( context['active_id'], ['claim_line_ids'])['claim_line_ids']
+        returned_lines = self.pool.get('claim.line').browse(returned_line_ids)
         M2M = []
         for line in returned_lines:
             if True: #line.selected:
-                M2M.append(self.pool.get('temp.claim.line').create(cr, uid, {
+                M2M.append(self.pool.get('temp.claim.line').create( {
                         'claim_origine' : "none",
                         'invoice_id' : line.invoice_id.id,
                         'product_id' : line.product_id.id,
@@ -51,8 +51,8 @@ class picking_in_from_returned_lines(osv.osv_memory):
         return M2M    
 
     # Get default destination location
-    def _get_dest_loc(self, cr, uid,context):
-        return self.pool.get('stock.warehouse').read(cr, uid, [1],['lot_input_id'])[0]['lot_input_id'][0]  
+    def _get_dest_loc(self, context):
+        return self.pool.get('stock.warehouse').read( [1],['lot_input_id'])[0]['lot_input_id'][0]
 
     _defaults = {
         'claim_line_ids': _get_selected_lines,
@@ -64,12 +64,12 @@ class picking_in_from_returned_lines(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
 
     # If "Create" button pressed
-    def action_create_picking(self, cr, uid, ids, context=None):
+    def action_create_picking(self,  ids, context=None):
         print "context", context
         partner_id = 0
 #        wf_service = netsvc.LocalService("workflow")
-        for picking in self.browse(cr, uid,ids):
-            claim_id = self.pool.get('crm.claim').browse(cr, uid, context['active_id'])
+        for picking in self.browse(ids):
+            claim_id = self.pool.get('crm.claim').browse( context['active_id'])
             partner_id = claim_id.partner_id.id
             # location type
             location = -1
@@ -78,7 +78,7 @@ class picking_in_from_returned_lines(osv.osv_memory):
             else:
                 location = claim_id.partner_id.property_stock_supplier.id
             # create picking
-            picking_id = self.pool.get('stock.picking').create(cr, uid, {
+            picking_id = self.pool.get('stock.picking').create( {
                         'origin': claim_id.sequence,
                         'type': 'in',
                         'move_type': 'one', # direct
@@ -94,7 +94,7 @@ class picking_in_from_returned_lines(osv.osv_memory):
                     })
             # Create picking lines
             for picking_line in picking.claim_line_ids:
-                move_id = self.pool.get('stock.move').create(cr, uid, {
+                move_id = self.pool.get('stock.move').create( {
                         'name' : picking_line.product_id.name_template, # Motif : crm id ? stock_picking_id ?
                         'priority': '0',
                         #'create_date':
@@ -113,7 +113,7 @@ class picking_in_from_returned_lines(osv.osv_memory):
                         'company_id': claim_id.company_id.id,
                         'location_id': location,
                         'location_dest_id': picking.claim_line_location.id,
-                        #self.pool.get('stock.warehouse').read(cr, uid, [1],['lot_input_id'])[0]['lot_input_id'][0],
+                        #self.pool.get('stock.warehouse').read( [1],['lot_input_id'])[0]['lot_input_id'][0],
                         'note': 'RMA Refound',
                     })
 
@@ -137,13 +137,13 @@ class picking_out_from_returned_lines(osv.osv_memory):
     }
 
     # Get selected lines to add to picking in
-    def _get_selected_lines(self, cr, uid,context):
-        returned_line_ids = self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['claim_line_ids'])['claim_line_ids'] 
-        returned_lines = self.pool.get('claim.line').browse(cr, uid,returned_line_ids)
+    def _get_selected_lines(self, context):
+        returned_line_ids = self.pool.get('crm.claim').read( context['active_id'], ['claim_line_ids'])['claim_line_ids']
+        returned_lines = self.pool.get('claim.line').browse(returned_line_ids)
         M2M = []
         for line in returned_lines:
             if True: # line.selected:
-                M2M.append(self.pool.get('temp.claim.line').create(cr, uid, {
+                M2M.append(self.pool.get('temp.claim.line').create( {
                         'claim_origine' : "none",
                         'invoice_id' : line.invoice_line_id.invoice_id.id,
                         'product_id' : line.product_id.id,
@@ -162,10 +162,10 @@ class picking_out_from_returned_lines(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
 
     # If "Create" button pressed
-    def action_create_picking(self, cr, uid, ids, context=None):
+    def action_create_picking(self,  ids, context=None):
         partner_id = 0
-        for picking in self.browse(cr, uid,ids):
-            claim_id = self.pool.get('crm.claim').browse(cr, uid, context['active_id'])
+        for picking in self.browse(ids):
+            claim_id = self.pool.get('crm.claim').browse( context['active_id'])
             partner_id = claim_id.partner_id.id
             # location type
             location = -1
@@ -174,7 +174,7 @@ class picking_out_from_returned_lines(osv.osv_memory):
             else:
                 location = claim_id.partner_id.property_stock_supplier.id
             # create picking
-            picking_id = self.pool.get('stock.picking').create(cr, uid, {
+            picking_id = self.pool.get('stock.picking').create( {
                         'origin': claim_id.sequence,
                         'type': 'out',
                         'move_type': 'one', # direct
@@ -184,14 +184,14 @@ class picking_out_from_returned_lines(osv.osv_memory):
                         'invoice_state': "none",
                         'company_id': claim_id.company_id.id,
                         # 'stock_journal_id': fields.many2one('stock.journal','Stock Journal', select=True),
-                        'location_id': self.pool.get('stock.warehouse').read(cr, uid, [1],['lot_input_id'])[0]['lot_input_id'][0],
+                        'location_id': self.pool.get('stock.warehouse').read( [1],['lot_input_id'])[0]['lot_input_id'][0],
                         'location_dest_id': location,
                         'note' : 'RMA picking in',
                     })
 
             # Create picking lines
             for picking_line in picking.claim_line_ids:
-                move_id = self.pool.get('stock.move').create(cr, uid, {
+                move_id = self.pool.get('stock.move').create( {
                         'name' : picking_line.product_id.name_template, # Motif : crm id ? stock_picking_id ?
                         'priority': '0',
                         #'create_date':
@@ -208,7 +208,7 @@ class picking_out_from_returned_lines(osv.osv_memory):
                         'price_unit': picking_line.price_unit,
                         # 'price_currency_id': claim_id.company_id.currency_id.id, # from invoice ???
                         'company_id': claim_id.company_id.id,
-                        'location_id': self.pool.get('stock.warehouse').read(cr, uid, [1],['lot_input_id'])[0]['lot_input_id'][0],
+                        'location_id': self.pool.get('stock.warehouse').read( [1],['lot_input_id'])[0]['lot_input_id'][0],
                         'location_dest_id': location,
                         'note': 'RMA Refound',
                     })

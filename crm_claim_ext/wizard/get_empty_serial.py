@@ -34,11 +34,11 @@ class get_empty_serial(orm.TransientModel):
     }
     
     # 
-    def temp_display_results(self, cr, uid, context):
+    def temp_display_results(self,  context):
         print "=====> IN TEMP display"
         temp_display = ""
-        print "partner_id : ",self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['partner_id'])['partner_id']
-#        print "partner_id : ",self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['partner_id'])['partner_id']
+        print "partner_id : ",self.pool.get('crm.claim').read( context['active_id'], ['partner_id'])['partner_id']
+#        print "partner_id : ",self.pool.get('crm.claim').read( context['active_id'], ['partner_id'])['partner_id']
         print context
 #        for return_line in self.browse(cr,uid,context):
 #            print "product_id : ",return_line.product_id.id       
@@ -53,8 +53,8 @@ class get_empty_serial(orm.TransientModel):
 #        return {'type': 'ir.actions.act_window_close',}
     
     # If "Add & close" button pressed
-#    def action_add_and_close(self, cr, uid, ids, context=None):
-#        self.add_return_lines(cr, uid, ids, context)    
+#    def action_add_and_close(self,  ids, context=None):
+#        self.add_return_lines( ids, context)    
 #        return {'type': 'ir.actions.act_window_close',}    
                       
 get_empty_serial()

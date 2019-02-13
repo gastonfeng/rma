@@ -27,22 +27,22 @@ class claim_make_picking(orm.TransientModel):
 
     _inherit = 'claim_make_picking.wizard'
 
-    def _get_dest_loc(self, cr, uid, context=None):
+    def _get_dest_loc(self,  context=None):
         """ Get default destination location """
-        loc_id = super(claim_make_picking, self)._get_dest_loc(cr, uid, context=context)
+        loc_id = super(claim_make_picking, self)._get_dest_loc( context=context)
         if context is None:
             context = {}
         warehouse_obj = self.pool.get('stock.warehouse')
         warehouse_id = context.get('warehouse_id')
         if context.get('picking_type') == 'in':
             loc_id = warehouse_obj.read(
-                cr, uid,
+
                 warehouse_id,
                 ['lot_rma_id'],
                 context=context)['lot_rma_id'][0]
         elif context.get('picking_type') == 'loss':
             loc_id = warehouse_obj.read(
-                cr, uid,
+
                 warehouse_id,
                 ['lot_carrier_loss_id'],
                 context=context)['lot_carrier_loss_id'][0]

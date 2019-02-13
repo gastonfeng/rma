@@ -96,8 +96,8 @@ class returned_lines_from_serial(orm.TransientModel):
     }
     
     # Get partner from case is set to filter serials
-    def _get_default_partner_id(self, cr, uid, context):
-        return self.pool.get('crm.claim').read(cr, uid,
+    def _get_default_partner_id(self,  context):
+        return self.pool.get('crm.claim').read(
             context['active_id'], ['partner_id'])['partner_id'][0]    
 
     _defaults = {
@@ -119,13 +119,13 @@ class returned_lines_from_serial(orm.TransientModel):
         return {'type': 'ir.actions.act_window_close',}
     
     # If "Add & close" button pressed
-    def action_add_and_close(self, cr, uid, ids, context=None):
-        self.add_return_lines(cr, uid, ids, context)    
+    def action_add_and_close(self,  ids, context=None):
+        self.add_return_lines( ids, context)    
         return {'type': 'ir.actions.act_window_close',}
     
     # If "Add & new" button pressed    
-    def action_add_and_new(self, cr, uid, ids, context=None):
-        self.add_return_lines(cr, uid, ids, context)
+    def action_add_and_new(self,  ids, context=None):
+        self.add_return_lines( ids, context)
         return {
             'context': context,
             'view_type': 'form',
@@ -137,23 +137,23 @@ class returned_lines_from_serial(orm.TransientModel):
         }
     
     # Method to get the product id from set
-    def get_product_id(self, cr, uid,ids,product_set, context=None):
+    def get_product_id(self, ids,product_set, context=None):
         product_id = False
-        for product in self.prodlot_2_product(cr, uid,[product_set]):
+        for product in self.prodlot_2_product([product_set]):
             product_id = product
         return product_id
 
     # Method to create return lines
-    def add_return_lines(self, cr, uid, ids, context=None):
+    def add_return_lines(self,  ids, context=None):
         result = self.browse(cr,uid,ids)[0]
         return_line = self.pool.get('claim.line')
         # Refactor code : create 1 "createmethode" called by each if with values as parameters    
-        return_line.create(cr, uid, {
+        return_line.create( {
                     'claim_id': context['active_id'],
                     'claim_origine': result.claim_1,
-                    'product_id' : self.get_product_id(cr, uid, ids,
+                    'product_id' : self.get_product_id( ids,
                         result.prodlot_id_1.id, context=context),
-                    #'invoice_id' : self.prodlot_2_invoice(cr, uid,[result.prodlot_id_1.id],[result.prodlot_id_1.product_id.id]), #PRODLOT_ID can be in many invoice !!
+                    #'invoice_id' : self.prodlot_2_invoice([result.prodlot_id_1.id],[result.prodlot_id_1.product_id.id]), #PRODLOT_ID can be in many invoice !!
                     'product_returned_quantity' : result.qty_1,
                     'prodlot_id' : result.prodlot_id_1.id,
 					'selected' : False,		
@@ -162,12 +162,12 @@ class returned_lines_from_serial(orm.TransientModel):
 					#'warning' : warranty['value']['warning'],
                }) 
         if result.prodlot_id_2.id : 
-            return_line.create(cr, uid, {
+            return_line.create( {
                     'claim_id': context['active_id'],
                     'claim_origine': result.claim_2,
-                    'product_id' : self.get_product_id(cr, uid, ids,
+                    'product_id' : self.get_product_id( ids,
                         result.prodlot_id_2.id, context=context),
-#                    'invoice_id' : self.prodlot_2_invoice(cr, uid,[result.prodlot_id_1.id]),
+#                    'invoice_id' : self.prodlot_2_invoice([result.prodlot_id_1.id]),
                     'product_returned_quantity' : result.qty_2,
                     'prodlot_id' : result.prodlot_id_2.id,
 					'selected' : False,		
@@ -176,12 +176,12 @@ class returned_lines_from_serial(orm.TransientModel):
 					#'warning' : warranty['value']['warning'],
                })
         if result.prodlot_id_3.id : 
-            return_line.create(cr, uid, {
+            return_line.create( {
                     'claim_id': context['active_id'],
                     'claim_origine': result.claim_3,
-                    'product_id' : self.get_product_id(cr, uid, ids,
+                    'product_id' : self.get_product_id( ids,
                         result.prodlot_id_3.id, context=context),
-#                    'invoice_id' : self.prodlot_2_invoice(cr, uid,[result.prodlot_id_1.id]),
+#                    'invoice_id' : self.prodlot_2_invoice([result.prodlot_id_1.id]),
                     'product_returned_quantity' : result.qty_3,
                     'prodlot_id' : result.prodlot_id_3.id,
                     'selected' : False,		
@@ -190,12 +190,12 @@ class returned_lines_from_serial(orm.TransientModel):
 					#'warning' : warranty['value']['warning'],
                })
         if result.prodlot_id_4.id : 
-            return_line.create(cr, uid, {
+            return_line.create( {
                     'claim_id': context['active_id'],
                     'claim_origine': result.claim_4,
-                    'product_id' : self.get_product_id(cr, uid, ids,
+                    'product_id' : self.get_product_id( ids,
                         result.prodlot_id_4.id, context=context),
-#                    'invoice_id' : self.prodlot_2_invoice(cr, uid,[result.prodlot_id_1.id]),
+#                    'invoice_id' : self.prodlot_2_invoice([result.prodlot_id_1.id]),
                     'product_returned_quantity' : result.qty_4,
                     'prodlot_id' : result.prodlot_id_4.id,
                     'selected' : False,		
@@ -204,12 +204,12 @@ class returned_lines_from_serial(orm.TransientModel):
 					#'warning' : warranty['value']['warning'],
                })
         if result.prodlot_id_5.id : 
-            return_line.create(cr, uid, {
+            return_line.create( {
                     'claim_id': context['active_id'],
                     'claim_origine': result.claim_5,
-                    'product_id' : self.get_product_id(cr, uid, ids,
+                    'product_id' : self.get_product_id( ids,
                         result.prodlot_id_5.id, context=context),
-#                    'invoice_id' : self.prodlot_2_invoice(cr, uid,[result.prodlot_id_1.id],[result.prodlot_id_1.product_id.id]),
+#                    'invoice_id' : self.prodlot_2_invoice([result.prodlot_id_1.id],[result.prodlot_id_1.product_id.id]),
                     'product_returned_quantity' : result.qty_5,
                     'prodlot_id' : result.prodlot_id_5.id,
                     'selected' : False,		
@@ -221,16 +221,16 @@ class returned_lines_from_serial(orm.TransientModel):
 					                 
         return True
         
-    def prodlot_2_product(self,cr, uid, prodlot_ids):          
-        stock_move_ids = self.pool.get('stock.move').search(cr, uid, 
+    def prodlot_2_product(self, prodlot_ids):          
+        stock_move_ids = self.pool.get('stock.move').search( 
             [('prodlot_id', 'in', prodlot_ids)])
-        res = self.pool.get('stock.move').read(cr, uid, 
+        res = self.pool.get('stock.move').read( 
             stock_move_ids, ['product_id'])
         return set([x['product_id'][0] for x in res if x['product_id']])
         
-    def prodlot_2_invoice(self,cr, uid, prodlot_id,product_id):
+    def prodlot_2_invoice(self, prodlot_id,product_id):
         # get stock_move_ids
-        stock_move_ids = self.pool.get('stock.move').search(cr, uid,
+        stock_move_ids = self.pool.get('stock.move').search(
             [('prodlot_id', 'in', prodlot_id)])
         # if 1 id
             # (get stock picking (filter on out ?))
@@ -242,12 +242,12 @@ class returned_lines_from_serial(orm.TransientModel):
         
         
         #
-        #return set(self.stock_move_2_invoice(cr, uid, stock_move_ids))
+        #return set(self.stock_move_2_invoice( stock_move_ids))
         return True
 
-    def stock_move_2_invoice(self, cr, uid, stock_move_ids):
+    def stock_move_2_invoice(self,  stock_move_ids):
         inv_line_ids = []
-        res = self.pool.get('stock.move').read(cr, uid,
+        res = self.pool.get('stock.move').read(
             stock_move_ids, ['sale_line_id'])
         sale_line_ids = [x['sale_line_id'][0] for x in res if x['sale_line_id']]
         if not sale_line_ids:
@@ -260,7 +260,7 @@ class returned_lines_from_serial(orm.TransientModel):
             for j in i:
                 inv_line_ids.append(j)
 
-        res = self.pool.get('account.invoice.line').read(cr, uid,
+        res = self.pool.get('account.invoice.line').read(
             inv_line_ids,['invoice_id'])
         return [x['invoice_id'][0] for x in res if x['invoice_id']]  
 

@@ -33,13 +33,13 @@ class refund_from_returned_lines(osv.osv_memory):
     }
 
     # Get selected lines to add to picking in
-    def _get_selected_lines(self, cr, uid,context):
-        returned_line_ids = self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['claim_line_ids'])['claim_line_ids'] 
-        returned_lines = self.pool.get('claim.line').browse(cr, uid,returned_line_ids)
+    def _get_selected_lines(self, context):
+        returned_line_ids = self.pool.get('crm.claim').read( context['active_id'], ['claim_line_ids'])['claim_line_ids'] 
+        returned_lines = self.pool.get('claim.line').browse(returned_line_ids)
         M2M = []
         for line in returned_lines:
             if True: #line.selected:
-                M2M.append(self.pool.get('temp.claim.line').create(cr, uid, {
+                M2M.append(self.pool.get('temp.claim.line').create( {
                         'claim_origine' : "none",
                         'invoice_id' : line.invoice_id.id,
                         'product_id' : line.product_id.id,
@@ -50,10 +50,10 @@ class refund_from_returned_lines(osv.osv_memory):
         return M2M
 
     # Get default journal
-    def _get_journal(self, cr, uid,context):
+    def _get_journal(self, context):
         #('company_id','=',claim_id.company_id.id)
         # ,('refund_journal','=','True')
-        return self.pool.get('account.journal').search(cr, uid, [('type','=','sale_refund')],limit=1)[0] 
+        return self.pool.get('account.journal').search( [('type','=','sale_refund')],limit=1)[0] 
 
     _defaults = {
         'claim_line_ids': _get_selected_lines,
@@ -65,17 +65,17 @@ class refund_from_returned_lines(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
 
     # On "Create" button
-    def action_create_refund(self, cr, uid, ids, context=None):
+    def action_create_refund(self,  ids, context=None):
         partner_id = 0
-        for refund in self.browse(cr, uid,ids):
-            claim_id = self.pool.get('crm.claim').browse(cr, uid, context['active_id'])
+        for refund in self.browse(ids):
+            claim_id = self.pool.get('crm.claim').browse( context['active_id'])
             partner_id = claim_id.partner_id.id
             # invoice type
             invoice_type = "out_refund"
             if claim_id.claim_type == "supplier":
                 invoice_type = "in_refund"
             # create invoice
-            invoice_id = self.pool.get('account.invoice').create(cr, uid, {
+            invoice_id = self.pool.get('account.invoice').create( {
                         'claim_origine' : "none",
                         'origin' : claim_id.sequence,
                         'type' : invoice_type,
@@ -97,7 +97,7 @@ class refund_from_returned_lines(osv.osv_memory):
             # Create invoice lines
             for refund_line in refund.claim_line_ids:
                 if refund_line.invoice_id:
-                    invoice_line_id = self.pool.get('account.invoice.line').create(cr, uid, {
+                    invoice_line_id = self.pool.get('account.invoice.line').create( {
                         'name' : refund_line.product_id.name_template,
                         'origin' : claim_id.sequence,
                         'invoice_id' : invoice_id,

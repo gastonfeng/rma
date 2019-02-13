@@ -33,13 +33,13 @@ class picking_out_from_exchange_lines(osv.osv_memory):
     }
 
     # Get selected lines to add to picking in
-    def _get_selected_lines(self, cr, uid,context):
-        exchange_line_ids = self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['product_exchange_ids'])['product_exchange_ids'] 
-        exchange_lines = self.pool.get('product.exchange').browse(cr, uid,exchange_line_ids)
+    def _get_selected_lines(self, context):
+        exchange_line_ids = self.pool.get('crm.claim').read( context['active_id'], ['product_exchange_ids'])['product_exchange_ids'] 
+        exchange_lines = self.pool.get('product.exchange').browse(exchange_line_ids)
         M2M = []
         for line in exchange_lines:
             if True: #line.selected:
-                M2M.append(self.pool.get('temp.exchange.line').create(cr, uid, {
+                M2M.append(self.pool.get('temp.exchange.line').create( {
 					    'name' : "#",
 					    'returned_product_id' : line.returned_product.id,
 					    'returned_product_quantity' : line.returned_product_qty,
@@ -59,12 +59,12 @@ class picking_out_from_exchange_lines(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
 
     # If "Create" button pressed
-    def action_create_picking(self, cr, uid, ids, context=None):
-        for exchange_lines in self.browse(cr, uid,ids):
-            claim_id = self.pool.get('crm.claim').browse(cr, uid, context['active_id'])
+    def action_create_picking(self,  ids, context=None):
+        for exchange_lines in self.browse(ids):
+            claim_id = self.pool.get('crm.claim').browse( context['active_id'])
             partner_id = claim_id.partner_id.id
             # create picking
-            picking_id = self.pool.get('stock.picking').create(cr, uid, {
+            picking_id = self.pool.get('stock.picking').create( {
 					    'origin': "RMA/"+`claim_id.id`,
                         'type': 'out',
                         'move_type': 'one', # direct
@@ -74,13 +74,13 @@ class picking_out_from_exchange_lines(osv.osv_memory):
                         'invoice_state': "none",
                         'company_id': claim_id.company_id.id,
                         # 'stock_journal_id': fields.many2one('stock.journal','Stock Journal', select=True),
-                        'location_id': self.pool.get('stock.warehouse').read(cr, uid, [1],['lot_input_id'])[0]['lot_input_id'][0],
+                        'location_id': self.pool.get('stock.warehouse').read( [1],['lot_input_id'])[0]['lot_input_id'][0],
                         'location_dest_id': claim_id.partner_id.property_stock_customer.id,
 					    'note' : 'RMA picking in',
 				    })
 		    # Create picking lines
             for exchange_line in exchange_lines.exchange_line_ids:
-                move_id = self.pool.get('stock.move').create(cr, uid, {
+                move_id = self.pool.get('stock.move').create( {
 					    'name' : exchange_line.replacement_product_id.name_template, # Motif : crm id ? stock_picking_id ?
 					    'priority': '0',
 					    #'create_date':
@@ -97,7 +97,7 @@ class picking_out_from_exchange_lines(osv.osv_memory):
 					    # 'price_unit': 1.0, # to get from invoice line
 					    # 'price_currency_id': claim_id.company_id.currency_id.id, # from invoice ???
 					    'company_id': claim_id.company_id.id,
-					    'location_id': self.pool.get('stock.warehouse').read(cr, uid, [1],['lot_input_id'])[0]['lot_input_id'][0],
+					    'location_id': self.pool.get('stock.warehouse').read( [1],['lot_input_id'])[0]['lot_input_id'][0],
 					    'location_dest_id': claim_id.partner_id.property_stock_customer.id,
 					    'note': 'RMA Refound',
 				    })

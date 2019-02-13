@@ -36,8 +36,8 @@ class returned_lines_from_invoice_invoice(osv.osv_memory):
     }
     
     # Get partner from case is set
-    def _get_default_partner_id(self, cr, uid, context):
-        return self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['partner_id'])['partner_id']
+    def _get_default_partner_id(self,  context):
+        return self.pool.get('crm.claim').read( context['active_id'], ['partner_id'])['partner_id']
 
     _defaults = {
         'partner_id': _get_default_partner_id,
@@ -48,18 +48,18 @@ class returned_lines_from_invoice_invoice(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}   
         
     # If "Return all" button pressed
-    def action_return_all(self, cr, uid, ids, context):
+    def action_return_all(self,  ids, context):
         # Get invoice id
         inv_id = 0
         for wiz_obj in self.browse(cr,uid,ids):
             inv_id = wiz_obj.invoice_id.id
         # Get invoice line ids from invoice id
         invoice_line_pool = self.pool.get('account.invoice.line')
-        invoice_lines_ids = invoice_line_pool.search(cr, uid, [('invoice_id', '=', inv_id)])       
+        invoice_lines_ids = invoice_line_pool.search( [('invoice_id', '=', inv_id)])       
         # Get invoice lines from invoice line ids
         for invoice_line in invoice_line_pool.browse(cr,uid,invoice_lines_ids):
             claim_line_pool = self.pool.get('claim.line')
-            line_id = claim_line_pool.create(cr, uid, {
+            line_id = claim_line_pool.create( {
 					'claim_origine' : "none",
 					'invoice_id' : invoice_line.invoice_id.id,
 					'product_id' : invoice_line.product_id.id,
@@ -75,7 +75,7 @@ class returned_lines_from_invoice_invoice(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
                         
     # If "Select lines" button pressed
-    def action_select_lines(self, cr, uid, ids, context):
+    def action_select_lines(self,  ids, context):
         # Add invoice_id to context
         for wiz_obj in self.browse(cr,uid,ids):
             context['invoice_id'] = wiz_obj.invoice_id.id
@@ -102,13 +102,13 @@ class returned_lines_from_invoice_lines(osv.osv_memory):
     }
     
     # Get possible returns from invoice
-    def _get_possible_returns_from_invoice(self, cr, uid, context):    
+    def _get_possible_returns_from_invoice(self,  context):    
         # Get invoice lines from invoice
-        invoice_lines_ids = self.pool.get('account.invoice.line').search(cr, uid, [('invoice_id', '=', context['invoice_id'])])
+        invoice_lines_ids = self.pool.get('account.invoice.line').search( [('invoice_id', '=', context['invoice_id'])])
         M2M = []
         # Create return lines from invoice lines
         for invoice_line in self.pool.get('account.invoice.line').browse(cr,uid,invoice_lines_ids):
-            M2M.append(self.pool.get('temp.claim.line').create(cr, uid, {
+            M2M.append(self.pool.get('temp.claim.line').create( {
 					'claim_origine' : "none",
 					'invoice_id' : invoice_line.invoice_id.id,
 					'invoice_line_id' : invoice_line.id,
@@ -128,11 +128,11 @@ class returned_lines_from_invoice_lines(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
 
     # If "Create" button pressed, for all temp return line create return line
-    def action_create_returns(self, cr, uid, ids, context=None):
+    def action_create_returns(self,  ids, context=None):
         for wiz_obj in self.browse(cr,uid,ids):
             for line in wiz_obj.claim_line_ids:
                 claim_line_pool = self.pool.get('claim.line')
-                line_id = claim_line_pool.create(cr, uid, {
+                line_id = claim_line_pool.create( {
 					'claim_origine' : line.claim_origine,
 					'invoice_id' : line.invoice_id.id,
 					'product_id' : line.product_id.id,

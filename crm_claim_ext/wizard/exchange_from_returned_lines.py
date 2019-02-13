@@ -33,13 +33,13 @@ class exchange_from_returned_lines(osv.osv_memory):
     }
     
     # Get selected lines to add to exchange
-    def _get_selected_lines(self, cr, uid,context):
-        returned_line_ids = self.pool.get('crm.claim').read(cr, uid, context['active_id'], ['return_line_ids'])['return_line_ids'] 
-        returned_lines = self.pool.get('return.line').browse(cr, uid,returned_line_ids)
+    def _get_selected_lines(self, context):
+        returned_line_ids = self.pool.get('crm.claim').read( context['active_id'], ['return_line_ids'])['return_line_ids'] 
+        returned_lines = self.pool.get('return.line').browse(returned_line_ids)
         M2M = []
         for line in returned_lines:
             if True: # ADD ALL LINE line.selected:
-                M2M.append(self.pool.get('temp.exchange.line').create(cr, uid, {
+                M2M.append(self.pool.get('temp.exchange.line').create( {
 					    'name' : "none",
 					    'returned_product_id' : line.product_id.id,
 					    'returned_product_quantity' : line.product_returned_quantity,
@@ -59,12 +59,12 @@ class exchange_from_returned_lines(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close',}
 
     # If "Create" button pressed
-    def action_create_exchange(self, cr, uid, ids, context=None):
-        for exchange in self.browse(cr, uid,ids):
-            claim_id = self.pool.get('crm.claim').browse(cr, uid, context['active_id'])
+    def action_create_exchange(self,  ids, context=None):
+        for exchange in self.browse(ids):
+            claim_id = self.pool.get('crm.claim').browse( context['active_id'])
             # create exchange
             for line in exchange.exchange_line_ids:
-                exchange_id = self.pool.get('product.exchange').create(cr, uid, {
+                exchange_id = self.pool.get('product.exchange').create( {
 					    'name' : "#",
 					    'state': 'draft',
 					    'exchange_send_date': time.strftime('%Y-%m-%d %H:%M:%S'),
