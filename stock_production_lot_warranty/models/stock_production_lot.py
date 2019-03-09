@@ -1,9 +1,11 @@
 # Copyright (C) 2018 - TODAY, Open Source Integrators
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models, api
-from dateutil.relativedelta import relativedelta
 from datetime import datetime, timedelta
+
+from dateutil.relativedelta import relativedelta
+
+from odoo import fields, models, api
 
 
 class StockProductionLot(models.Model):
